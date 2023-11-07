@@ -7,26 +7,53 @@
 // https://fiapcom-my.sharepoint.com/personal/pf1669_fiap_com_br/_layouts/15/stream.aspx?id=%2Fpersonal%2Fpf1669%5Ffiap%5Fcom%5Fbr%2FDocuments%2FVideos%2FHMAD%20%2D%20Revis%C3%A3o%20geral%20para%20o%20CP6%2Emp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0RpcmVjdCJ9fQ&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview&or=teams&ga=1
 // 40:25
 
-import React, {useState} from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
-import { object, string, number } from 'yup'
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import { NavigationContainer } from '@react-navigation/native'
+//npx create-react-native-app Cp6
+//npx expo install react-native-screens react-native-safe-area-context
+//npm i axios yup @react-navigation/native @react-navigation/bottom-tabs
+//npm run android
+//npm run build
+
+// https://fiapcom-my.sharepoint.com/personal/pf1669_fiap_com_br/_layouts/15/stream.aspx?id=%2Fpersonal%2Fpf1669%5Ffiap%5Fcom%5Fbr%2FDocuments%2FVideos%2FHMAD%20%2D%20Revis%C3%A3o%20geral%20para%20o%20CP6%2Emp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0RpcmVjdCJ9fQ&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview&or=teams&ga=1
+// 40:25
+
+import React, { useState, useReducer } from 'react';
+import { StyleSheet, Text, TextInput, View, Button } from 'react-native';
+import { object, string, number } from 'yup';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import axios from 'axios'; // Import axios for HTTP requests
+import { FlatList } from 'react-native'; // Import FlatList for rendering lists
 
 const {Screen, Navigator} = createBottomTabNavigator();
 
-const defaultState = {
+const initialState = {
     list:[]
 }
 
-const reducerFunction = (state, {type, payload}) =>{
-    if(type="CLEAR_LIST"){
-        return{list:[]}
-    }if(type="ADD_LIST"){
-        return{list:[...state.list, payload]}
+const initialContext = {
+    id:"", 
+    setId:(value)=>{},
+    name:"",
+    setName:(value)=>{},
+    type:"",
+    setType:(value)=>{},
+    classification:"",
+    setClassification:(value)=>{},
+    state:{},
+    dispatcher:(action)=>{},
+    save:()=>{},
+};
+
+const Context = createContext(initialContext);
+
+const reducerFunction = (state, { type, payload }) => {
+    if (type === "CLEAR_LIST") {
+        return { list: [] };
+    } else if (type === "ADD_LIST") {
+        return { list: [...state.list, payload] };
     }
-    throw new Exception("Invalid type in reducerFunction()")
-}
+    throw new Error("Invalid type in reducerFunction()");
+};
 
 const RestauranteSchema = object({
     name: string().required().min(3),
@@ -34,51 +61,57 @@ const RestauranteSchema = object({
     classification: number().required().min(0).max(5),
 })
 
-const persistRestApi = () =>{
+const persistRestApi = () => {
     const api = axios.create({
-        baseUrl: "https://fiap-reaturantes-default-rtdb.firebaseio.com"
-    })
+        baseURL: "https://fiap-restaurantes-default-rtdb.firebaseio.com",
+    });
 
-    const saveApi = (obj) =>{
+    const saveApi = (obj) => {
         return api.post("/restaurantes.json", obj);
-    }
-}
+    };
 
-const useRestaurantControl = () =>{
+    return {
+        saveApi,
+    };
+};
+
+
+const useRestaurantControl = () => {
     const [id, setId] = useState("");
     const [name, setName] = useState("");
     const [type, setType] = useState("");
     const [classification, setClassification] = useState("");
 
-    const [state, dispatcher] = useReducer(reducerFunction, initialState)
+    const [state, dispatcher] = useReducer(reducerFunction, initialState); // Pass initialState to useReducer
 
-    const {saveApi} = persistRestApi();
+    const { saveApi } = persistRestApi();
 
-    const ClearStates = () =>{
-        setId("")
-        setName("")
-        setType("")
-        setClassification("")
-    }
+    const ClearStates = () => {
+        setId("");
+        setName("");
+        setType("");
+        setClassification("");
+    };
 
     const save = () => {
-        const obj = {name,type,classification}
+        const obj = { name, type, classification };
         saveApi(obj)
-        .then(()=>{
-            alert("Saved!")
-            ClearStates();
-        })
-    }
+            .then(() => {
+                alert("Saved!");
+                ClearStates();
+            });
+    };
 
-    return{
+    return {
         id, setId,
         name, setName,
         type, setType,
         classification, setClassification,
-        state,dispatcher,
-        save
-    }
-}
+        state, dispatcher,
+        save,
+    };
+};
+
 
 const Form = () => {
     
@@ -102,27 +135,32 @@ const Form = () => {
     )
 }
 
-const Item = () =>{
-    return(
+const Item = ({ item }) => { // Receive the item as a prop
+    return (
         <View>
-            <Text>Restaurant Name: </Text>
-            <Text>Type:</Text>
-            <Text>Classification:</Text>
+            <Text>Restaurant Name: {item.name}</Text>
+            <Text>Type: {item.type}</Text>
+            <Text>Classification: {item.classification}</Text>
         </View>
-    )
-}
+    );
+};
 
-const List = () =>{
-    return(
+
+const List = ({ state }) => {
+    return (
         <View>
-            <FlatList data={state.list} renderItem={Item}/>
+            <FlatList
+                data={state.list}
+                renderItem={({ item }) => <Item item={item} />}
+            />
         </View>
-    )
-}
+    );
+};
+
 
 export default function App() {
-
     return (
+        <Context.Provider value={control}>
         <NavigationContainer>
             <View>
                 <Navigator>
@@ -132,6 +170,7 @@ export default function App() {
                 </Navigator>
             </View>
         </NavigationContainer>
+        </Context.Provider>
     );
 }
 
