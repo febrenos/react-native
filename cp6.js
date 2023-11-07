@@ -7,16 +7,7 @@
 // https://fiapcom-my.sharepoint.com/personal/pf1669_fiap_com_br/_layouts/15/stream.aspx?id=%2Fpersonal%2Fpf1669%5Ffiap%5Fcom%5Fbr%2FDocuments%2FVideos%2FHMAD%20%2D%20Revis%C3%A3o%20geral%20para%20o%20CP6%2Emp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0RpcmVjdCJ9fQ&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview&or=teams&ga=1
 // 40:25
 
-//npx create-react-native-app Cp6
-//npx expo install react-native-screens react-native-safe-area-context
-//npm i axios yup @react-navigation/native @react-navigation/bottom-tabs
-//npm run android
-//npm run build
-
-// https://fiapcom-my.sharepoint.com/personal/pf1669_fiap_com_br/_layouts/15/stream.aspx?id=%2Fpersonal%2Fpf1669%5Ffiap%5Fcom%5Fbr%2FDocuments%2FVideos%2FHMAD%20%2D%20Revis%C3%A3o%20geral%20para%20o%20CP6%2Emp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0RpcmVjdCJ9fQ&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview&or=teams&ga=1
-// 40:25
-
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, createContext } from 'react';
 import { StyleSheet, Text, TextInput, View, Button } from 'react-native';
 import { object, string, number } from 'yup';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -114,26 +105,22 @@ const useRestaurantControl = () => {
 
 
 const Form = () => {
-    
-    const {name, setName, 
-        type, setType, 
-        classification, setClassification, save}  = useRestaurantControl();
+    const control = useContext(Context);
 
-    const buttonName = id ? "Save" : "Register"
-    // let buttonName = "Register"
-    // if(id !== null){
-    //     buttonName = "Save"
-    // }
+    const { name, setName, type, setType, classification, setClassification, save } = control;
 
-    return(
+    const buttonName = control.id ? "Save" : "Register";
+
+    return (
         <View>
-            <TextInput placeholder="name" value={name} onChangeText={setName}/>
-            <TextInput placeholder="type" value={type} onChangeText={setType}/>
-            <TextInput placeholder="name" value={classification} onChangeText={setClassification}/>
-            <Button title={buttonName} onPress={save}/>
+            <TextInput placeholder="name" value={name} onChangeText={setName} />
+            <TextInput placeholder="type" value={type} onChangeText={setType} />
+            <TextInput placeholder="classification" value={classification} onChangeText={setClassification} />
+            <Button title={buttonName} onPress={save} />
         </View>
-    )
-}
+    );
+};
+
 
 const Item = ({ item }) => { // Receive the item as a prop
     return (
@@ -145,8 +132,10 @@ const Item = ({ item }) => { // Receive the item as a prop
     );
 };
 
+const List = () => {
+    const control = useContext(Context);
+    const { state } = control;
 
-const List = ({ state }) => {
     return (
         <View>
             <FlatList
@@ -159,6 +148,8 @@ const List = ({ state }) => {
 
 
 export default function App() {
+    const control = useRestaurantControl();
+
     return (
         <Context.Provider value={control}>
         <NavigationContainer>
@@ -173,5 +164,3 @@ export default function App() {
         </Context.Provider>
     );
 }
-
-
