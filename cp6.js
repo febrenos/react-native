@@ -106,17 +106,28 @@ const useRestaurantControl = () => {
 
 const Form = () => {
     const control = useContext(Context);
-
     const { name, setName, type, setType, classification, setClassification, save } = control;
-
     const buttonName = control.id ? "Save" : "Register";
+
+    const handleSave = () => {
+        // Validate the input data using yup
+        RestauranteSchema.validate({ name, type, classification })
+            .then(() => {
+                // Validation passed, proceed with saving
+                save();
+            })
+            .catch((error) => {
+                // Validation failed, display error message
+                alert(error.message);
+            });
+    };
 
     return (
         <View>
             <TextInput placeholder="name" value={name} onChangeText={setName} />
             <TextInput placeholder="type" value={type} onChangeText={setType} />
             <TextInput placeholder="classification" value={classification} onChangeText={setClassification} />
-            <Button title={buttonName} onPress={save} />
+            <Button title={buttonName} onPress={handleSave} />
         </View>
     );
 };
